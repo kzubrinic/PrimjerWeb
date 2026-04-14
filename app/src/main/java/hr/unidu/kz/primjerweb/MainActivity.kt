@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Scanner
@@ -97,6 +98,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun citajOdgovor(inputStream: InputStream): String {
+        return inputStream.bufferedReader().use { it.readText() }
+    }
+
     private suspend fun dohvatiPodatkeSPraznicima(urlString: String): String = withContext(Dispatchers.IO) {
         var conn: HttpURLConnection? = null
         try {
@@ -109,7 +114,8 @@ class MainActivity : AppCompatActivity() {
             // Provjeri HTTP status kod
             val responseCode = conn.responseCode
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                conn.inputStream.bufferedReader().use { it.readText() }
+                // Čitaj podatke
+                citajOdgovor(conn.inputStream)
             } else {
                 // Logiraj grešku ako server vrati npr. 404 ili 500
                 android.util.Log.e("MREZA", "Server vratio status: $responseCode")
@@ -123,10 +129,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun inputStreamToString(inputStream: java.io.InputStream): String {
-        val s = Scanner(inputStream).useDelimiter("\\A")
-        return if (s.hasNext()) s.next() else ""
-    }
+
+
+
 
     // Konfiguracija JSON parsera (npr. da ignorira polja koja nismo definirali u klasi)
     private val jsonParser = Json {
